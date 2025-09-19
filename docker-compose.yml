@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:7.0
+    container_name: circulum-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: circulum
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - circulum-network
+
+  # Solana development environment
+  solana-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: circulum-solana-dev
+    restart: unless-stopped
+    environment:
+      - SOLANA_RPC_URL=https://api.testnet.solana.com
+      - SOLANA_NETWORK=testnet
+      - ANCHOR_PROVIDER_URL=https://api.testnet.solana.com
+      - ANCHOR_WALLET=/workspace/keys/test-keypair.json
+    ports:
+      - "8899:8899"  # Solana RPC (if running local validator)
+    volumes:
+      - .:/workspace
+      - solana_config:/root/.config/solana
+      - ./keys:/workspace/keys
+    networks:
+      - circulum-network
+    depends_on:
+      - mongodb
+
+  # API service
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: circulum-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/circulum?authSource=admin
+      - SOLANA_RPC_URL=https://api.testnet.solana.com
+      - SOLANA_NETWORK=testnet
+      - LOG_LEVEL=debug
+      - RATE_LIMIT_POINTS=1000
+      - RATE_LIMIT_DURATION=60
+      - CORS_ORIGIN=*
+      - API_KEY_CLEANUP_INTERVAL=3600000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+      - ./keys:/app/keys
+    networks:
+      - circulum-network
+    depends_on:
+      - mongodb
+      - solana-dev
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.solana
+    container_name: circulum-test-runner
+    environment:
+      - SOLANA_RPC_URL=https://api.testnet.solana.com
+      - SOLANA_NETWORK=testnet
+      - ANCHOR_PROVIDER_URL=https://api.testnet.solana.com
+      - ANCHOR_WALLET=/workspace/keys/test-keypair.json
+      - API_BASE_URL=http://api:3000
+    volumes:
+      - .:/workspace
+      - ./keys:/workspace/keys
+    networks:
+      - circulum-network
+    depends_on:
+      - mongodb
+      - api
+      - solana-dev
+    profiles:
+      - testing
+    command: ["npm", "test"]
+
+volumes:
+  mongodb_data:
+  solana_config:
+
+networks:
+  circulum-network:
+    driver: bridge

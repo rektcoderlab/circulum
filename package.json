@@ -1,0 +1,45 @@
+{
+  "name": "circulum",
+  "version": "0.1.0",
+  "description": "Decentralized Subscription Manager for Solana",
+  "main": "index.js",
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "test": "anchor test",
+    "build": "anchor build",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "deploy:mainnet": "anchor deploy --provider.cluster mainnet",
+    "api:dev": "cd api && npm run dev",
+    "api:start": "cd api && npm start"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/spl-token": "^0.3.9",
+    "@solana/web3.js": "^1.87.6"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "prettier": "^2.6.2",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.3.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rektcoderlab/circulum"
+  },
+  "keywords": [
+    "solana",
+    "blockchain",
+    "subscription",
+    "defi",
+    "payments",
+    "recurring"
+  ],
+  "author": "RektCoder Lab",
+  "license": "MIT"
+}

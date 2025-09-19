@@ -1,0 +1,37 @@
+{
+  "name": "circulum-cli",
+  "version": "1.0.0",
+  "description": "Circulum API Key Management CLI",
+  "main": "dist/circulum-keys.js",
+  "bin": {
+    "circulum-keys": "./dist/circulum-keys.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/circulum-keys.js",
+    "dev": "ts-node circulum-keys.ts",
+    "install-global": "npm run build && npm install -g ."
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "mongoose": "^8.0.3",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.6",
+    "cli-table3": "^0.6.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "@types/inquirer": "^9.0.7",
+    "typescript": "^5.1.6",
+    "ts-node": "^10.9.1"
+  },
+  "keywords": [
+    "cli",
+    "api-keys",
+    "mongodb",
+    "circulum"
+  ],
+  "author": "RektCoder Lab",
+  "license": "MIT"
+}

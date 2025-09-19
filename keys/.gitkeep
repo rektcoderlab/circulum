@@ -1,0 +1,9 @@
+# This directory contains Solana keypairs for testing
+# Add your test keypairs here
+# 
+# Example files:
+# - test-keypair.json (main test wallet)
+# - program-keypair.json (program deployment key)
+# - authority-keypair.json (program authority key)
+#
+# IMPORTANT: Never commit real keypairs with funds to version control!
