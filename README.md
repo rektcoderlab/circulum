@@ -38,6 +38,9 @@ Before using in production, you must:
 Circulum/
 ├── programs/          # Solana smart contracts
 │   └── circulum/      # Main subscription contract
+├── core/              # Core services (shared across api, cron, cli)
+│   └── src/
+│       └── services/  # Shared business logic services
 ├── api/               # Backend API for frontend integration
 ├── cron/              # Payment scheduler service
 ├── cli/               # Command-line tools
