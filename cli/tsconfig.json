@@ -14,7 +14,10 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@core/*": ["../core/src/*"]
+    },
   },
   "include": [
     "**/*.ts"
