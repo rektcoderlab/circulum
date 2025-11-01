@@ -1,7 +1,7 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
-import { Subscription, ISubscription } from '@/models/subscription';
-import { Plan, IPlan } from '@/models/plan';
+import { Subscription, ISubscription } from '@core/models/subscription';
+import { Plan, IPlan } from '@core/models/plan';
 import { logger } from '@/utils/logger';
 
 export interface PaymentResult {
