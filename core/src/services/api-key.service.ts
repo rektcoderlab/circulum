@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { ApiKey, IApiKey } from '@/models/api-key';
-import { logger } from '@/utils/logger';
+import { ApiKey, IApiKey } from '../models/api-key';
+import { logger } from '../utils/logger';
 
 export interface CreateApiKeyData {
   name: string;
