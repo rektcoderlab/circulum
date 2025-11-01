@@ -1,10 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { PublicKey } from '@solana/web3.js';
 import Joi from 'joi';
-import { CirculumService } from '@/services/circulum.service';
+import { CirculumService } from '@core/services/circulum.service';
 import { createError } from '@/middleware/error-handler';
 import { logger } from '@/utils/logger';
-import { apiKeyService } from '@/services/api-key.service';
+import { apiKeyService } from '@core/services/api-key.service';
 
 const router = Router();
 

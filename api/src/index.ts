@@ -5,7 +5,7 @@ import compression from 'compression';
 import dotenv from 'dotenv';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
-import { CirculumService } from './services/circulum.service';
+import { CirculumService } from '@core/services/circulum.service';
 import { subscriptionRoutes } from './routes/subscriptions';
 import { planRoutes } from './routes/plans';
 import { paymentRoutes } from './routes/payments';
