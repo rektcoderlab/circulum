@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import Table from 'cli-table3';
 import { config } from 'dotenv';
-import { apiKeyService, CreateApiKeyData } from '../core/src/services/api-key.service';
+import { apiKeyService, CreateApiKeyData } from '@core/services/api-key.service';
 
 // Load environment variables
 config({ path: '../api/.env' });

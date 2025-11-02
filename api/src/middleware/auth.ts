@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { createError } from './error-handler';
 import { logger } from '@/utils/logger';
-import { ApiKeyService, ApiKeyInfo } from '@/core/services/api-key.service';
+import { apiKeyService, ApiKeyInfo } from '@core/services/api-key.service';
 
 // Extended Request interface to include API key info
 export interface AuthenticatedRequest extends Request {
