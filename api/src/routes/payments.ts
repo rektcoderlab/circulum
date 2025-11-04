@@ -3,7 +3,8 @@ import { PublicKey } from '@solana/web3.js';
 import Joi from 'joi';
 import { CirculumService } from '@core/services/circulum.service';
 import { createError } from '@/middleware/error-handler';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
+import { authenticateApiKey, requirePermissions } from '@/middleware/auth';
 
 const router = Router();
 
@@ -15,8 +16,11 @@ const processPaymentSchema = Joi.object({
   tokenMint: Joi.string().optional(),
 });
 
+// Apply authentication middleware to all payment routes
+router.use(authenticateApiKey);
+
 // Process a recurring payment
-router.post('/process', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/process', requirePermissions(['write:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = processPaymentSchema.validate(req.body);
     if (error) {
@@ -72,7 +76,7 @@ router.post('/process', async (req: Request, res: Response, next: NextFunction) 
 });
 
 // Get payment history for a subscription
-router.get('/history/:subscriber/:planId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/history/:subscriber/:planId', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
 
@@ -119,7 +123,7 @@ router.get('/history/:subscriber/:planId', async (req: Request, res: Response, n
 });
 
 // Get upcoming payments for a subscriber
-router.get('/upcoming/:subscriber', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/upcoming/:subscriber', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const subscriber = req.params.subscriber;
     if (!subscriber) {
@@ -167,7 +171,7 @@ router.get('/upcoming/:subscriber', async (req: Request, res: Response, next: Ne
 });
 
 // Get payment statistics for a creator
-router.get('/stats/creator/:creator', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/stats/creator/:creator', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const creator = req.params.creator;
     if (!creator) {

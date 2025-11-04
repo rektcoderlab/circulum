@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import PaymentScheduler from './scheduler';
+import { PaymentScheduler } from './scheduler';
 import { logger } from './utils/logger';
 
 // Load environment variables

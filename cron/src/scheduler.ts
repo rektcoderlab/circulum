@@ -171,49 +171,4 @@ export class PaymentScheduler {
   }
 }
 
-// Main execution when run directly
-async function main() {
-  const scheduler = new PaymentScheduler();
-  
-  try {
-    await scheduler.initialize();
-    await scheduler.start();
 
-    // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      logger.info('Received SIGINT, shutting down gracefully...');
-      await scheduler.stop();
-      
-      const db = DatabaseConnection.getInstance();
-      await db.disconnect();
-      
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      logger.info('Received SIGTERM, shutting down gracefully...');
-      await scheduler.stop();
-      
-      const db = DatabaseConnection.getInstance();
-      await db.disconnect();
-      
-      process.exit(0);
-    });
-
-    logger.info('Payment scheduler is running. Press Ctrl+C to stop.');
-
-  } catch (error) {
-    logger.error('Failed to start payment scheduler:', error);
-    process.exit(1);
-  }
-}
-
-// Run if this file is executed directly
-if (require.main === module) {
-  main().catch((error) => {
-    logger.error('Unhandled error in main:', error);
-    process.exit(1);
-  });
-}
-
-export default PaymentScheduler;

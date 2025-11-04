@@ -10,7 +10,7 @@ import { subscriptionRoutes } from './routes/subscriptions';
 import { planRoutes } from './routes/plans';
 import { paymentRoutes } from './routes/payments';
 import { integrationRoutes } from './routes/integration';
-import { logger } from './utils/logger';
+import { logger } from '@core/utils/logger';
 import { errorHandler } from './middleware/error-handler';
 import { rateLimiter } from './middleware/rate-limiter';
 import { database } from './utils/database';

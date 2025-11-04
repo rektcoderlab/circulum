@@ -3,7 +3,8 @@ import { PublicKey } from '@solana/web3.js';
 import Joi from 'joi';
 import { CirculumService } from '@core/services/circulum.service';
 import { createError } from '@/middleware/error-handler';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
+import { authenticateApiKey, requirePermissions } from '@/middleware/auth';
 
 const router = Router();
 
@@ -22,8 +23,11 @@ const getPlanSchema = Joi.object({
   planId: Joi.string().required(),
 });
 
+// Apply authentication middleware to all plan routes
+router.use(authenticateApiKey);
+
 // Create a new subscription plan
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermissions(['write:plans']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = createPlanSchema.validate(req.body);
     if (error) {
@@ -63,7 +67,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get subscription plan details
-router.get('/:creator/:planId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:creator/:planId', requirePermissions(['read:plans']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = getPlanSchema.validate(req.params);
     if (error) {
@@ -93,7 +97,7 @@ router.get('/:creator/:planId', async (req: Request, res: Response, next: NextFu
 });
 
 // Get all plans for a creator
-router.get('/creator/:creator', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/creator/:creator', requirePermissions(['read:plans']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const creator = req.params.creator;
     if (!creator) {
@@ -117,7 +121,7 @@ router.get('/creator/:creator', async (req: Request, res: Response, next: NextFu
 });
 
 // Update subscription plan
-router.put('/:creator/:planId', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:creator/:planId', requirePermissions(['write:plans']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { creator, planId } = req.params;
     const updates = req.body;
@@ -144,7 +148,7 @@ router.put('/:creator/:planId', async (req: Request, res: Response, next: NextFu
 });
 
 // Deactivate subscription plan
-router.delete('/:creator/:planId', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:creator/:planId', requirePermissions(['write:plans']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { creator, planId } = req.params;
 

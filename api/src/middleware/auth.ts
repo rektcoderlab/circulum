@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { createError } from './error-handler';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
 import { apiKeyService, ApiKeyInfo } from '@core/services/api-key.service';
 
 // Extended Request interface to include API key info

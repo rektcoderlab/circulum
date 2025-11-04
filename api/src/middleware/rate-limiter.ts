@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
 
 const rateLimiter = new RateLimiterMemory({
   points: 100, // Number of requests

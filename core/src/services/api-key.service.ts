@@ -2,6 +2,20 @@ import crypto from 'crypto';
 import { ApiKey, IApiKey } from '../models/api-key';
 import { logger } from '../utils/logger';
 
+export const AVAILABLE_PERMISSIONS = [
+  'plans:read',
+  'plans:write',
+  'subscriptions:read',
+  'subscriptions:write',
+  'payments:read',
+  'payments:write',
+  'webhooks:read',
+  'webhooks:write',
+  'integration:read',
+  'admin:read',
+  'admin:write',
+];
+
 export interface CreateApiKeyData {
   name: string;
   permissions: string[];

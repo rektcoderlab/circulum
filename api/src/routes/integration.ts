@@ -3,8 +3,9 @@ import { PublicKey } from '@solana/web3.js';
 import Joi from 'joi';
 import { CirculumService } from '@core/services/circulum.service';
 import { createError } from '@/middleware/error-handler';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
 import { apiKeyService } from '@core/services/api-key.service';
+import { authenticateApiKey, requirePermissions } from '@/middleware/auth';
 
 const router = Router();
 
@@ -33,7 +34,11 @@ const apiKeySchema = Joi.object({
     'payments:read',
     'payments:write',
     'webhooks:read',
-    'webhooks:write'
+    'webhooks:write',
+    'api-keys:read',
+    'api-keys:write',
+    'integration:write',
+    'metrics:read'
   )).min(1).required(),
   rateLimit: Joi.number().integer().min(10).max(10000).default(1000),
 });
@@ -193,7 +198,7 @@ router.post('/validate', async (req: Request, res: Response, next: NextFunction)
 });
 
 // Webhook management
-router.get('/webhooks', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/webhooks', authenticateApiKey, requirePermissions(['read:webhooks']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from a database
     const webhooks = [
@@ -215,7 +220,7 @@ router.get('/webhooks', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
-router.post('/webhooks', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/webhooks', authenticateApiKey, requirePermissions(['write:webhooks']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = webhookSchema.validate(req.body);
     if (error) {
@@ -247,7 +252,7 @@ router.post('/webhooks', async (req: Request, res: Response, next: NextFunction)
 });
 
 // API Key management
-router.get('/api-keys', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/api-keys', authenticateApiKey, requirePermissions(['read:api-keys']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from a database
     const apiKeys = [
@@ -271,7 +276,7 @@ router.get('/api-keys', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
-router.post('/api-keys', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/api-keys', authenticateApiKey, requirePermissions(['write:api-keys']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = apiKeySchema.validate(req.body);
     if (error) {
@@ -449,7 +454,7 @@ curl -X POST ${baseUrl}/payments/process \\
 });
 
 // Integration testing endpoint
-router.post('/test', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/test', authenticateApiKey, requirePermissions(['integration:write']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { endpoint, method = 'GET', data } = req.body;
 
@@ -480,7 +485,7 @@ router.post('/test', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 // Get integration metrics
-router.get('/metrics', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/metrics', authenticateApiKey, requirePermissions(['read:metrics']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from analytics/metrics store
     const metrics = {

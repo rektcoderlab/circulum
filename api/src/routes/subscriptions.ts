@@ -3,7 +3,8 @@ import { PublicKey } from '@solana/web3.js';
 import Joi from 'joi';
 import { CirculumService } from '@core/services/circulum.service';
 import { createError } from '@/middleware/error-handler';
-import { logger } from '@/utils/logger';
+import { logger } from '@core/utils/logger';
+import { authenticateApiKey, requirePermissions } from '@/middleware/auth';
 
 const router = Router();
 
@@ -20,8 +21,11 @@ const cancelSubscriptionSchema = Joi.object({
   planId: Joi.number().integer().min(0).required(),
 });
 
+// Apply authentication middleware to all subscription routes
+router.use(authenticateApiKey);
+
 // Subscribe to a plan
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermissions(['write:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = subscribeSchema.validate(req.body);
     if (error) {
@@ -58,7 +62,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get subscription details
-router.get('/:subscriber/:planId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:subscriber/:planId', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
 
@@ -88,7 +92,7 @@ router.get('/:subscriber/:planId', async (req: Request, res: Response, next: Nex
 });
 
 // Get all subscriptions for a subscriber
-router.get('/subscriber/:subscriber', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/subscriber/:subscriber', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const subscriber = req.params.subscriber;
     if (!subscriber) {
@@ -113,7 +117,7 @@ router.get('/subscriber/:subscriber', async (req: Request, res: Response, next: 
 });
 
 // Cancel subscription
-router.delete('/', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/', requirePermissions(['write:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = cancelSubscriptionSchema.validate(req.body);
     if (error) {
@@ -150,7 +154,7 @@ router.delete('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get subscription status (check if payment is due)
-router.get('/:subscriber/:planId/status', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:subscriber/:planId/status', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
 
