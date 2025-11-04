@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 export interface WebhookEvent {
   id: string;

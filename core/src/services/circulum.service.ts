@@ -1,7 +1,7 @@
 import { AnchorProvider, Program, BN } from '@coral-xyz/anchor';
 import { PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 // Import the IDL (this would be generated from the smart contract)
 const CIRCULUM_PROGRAM_ID = new PublicKey('Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS');

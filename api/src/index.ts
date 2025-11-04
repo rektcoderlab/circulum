@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import { CirculumService } from '@core/services/circulum.service';
@@ -14,6 +15,7 @@ import { logger } from '@core/utils/logger';
 import { errorHandler } from './middleware/error-handler';
 import { rateLimiter } from './middleware/rate-limiter';
 import { database } from './utils/database';
+import { swaggerSpec } from './config/swagger';
 
 dotenv.config();
 
@@ -27,7 +29,44 @@ app.use(compression());
 app.use(express.json());
 app.use(rateLimiter);
 
-// Health check endpoint
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Circulum API Documentation',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Returns the API health status
+ *     tags: [Health]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: API is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: healthy
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 version:
+ *                   type: string
+ *                   example: 0.1.0
+ */
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 

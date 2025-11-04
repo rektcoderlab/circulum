@@ -19,7 +19,79 @@ const processPaymentSchema = Joi.object({
 // Apply authentication middleware to all payment routes
 router.use(authenticateApiKey);
 
-// Process a recurring payment
+/**
+ * @swagger
+ * /api/payments/process:
+ *   post:
+ *     summary: Process a recurring payment
+ *     description: Process a payment for an active subscription
+ *     tags: [Payments]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - subscriber
+ *               - creator
+ *               - planId
+ *             properties:
+ *               subscriber:
+ *                 type: string
+ *                 description: Subscriber's Solana public key
+ *               creator:
+ *                 type: string
+ *                 description: Creator's Solana public key
+ *               planId:
+ *                 type: integer
+ *                 description: Plan ID
+ *               tokenMint:
+ *                 type: string
+ *                 description: Optional SPL token mint address
+ *     responses:
+ *       200:
+ *         description: Payment processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transactionSignature:
+ *                       type: string
+ *                     subscriber:
+ *                       type: string
+ *                     creator:
+ *                       type: string
+ *                     planId:
+ *                       type: integer
+ *                     paymentNumber:
+ *                       type: integer
+ *                     nextPaymentDue:
+ *                       type: integer
+ *                     message:
+ *                       type: string
+ *       400:
+ *         description: Invalid request or payment not due
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Subscription not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/process', requirePermissions(['write:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = processPaymentSchema.validate(req.body);
@@ -75,7 +147,68 @@ router.post('/process', requirePermissions(['write:payments']), async (req: Requ
   }
 });
 
-// Get payment history for a subscription
+/**
+ * @swagger
+ * /api/payments/history/{subscriber}/{planId}:
+ *   get:
+ *     summary: Get payment history for a subscription
+ *     description: Retrieve the payment history for a specific subscription
+ *     tags: [Payments]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subscriber's Solana public key
+ *       - in: path
+ *         name: planId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Plan ID
+ *     responses:
+ *       200:
+ *         description: Payment history retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     subscriber:
+ *                       type: string
+ *                     planId:
+ *                       type: integer
+ *                     totalPayments:
+ *                       type: integer
+ *                     payments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           paymentNumber:
+ *                             type: integer
+ *                           amount:
+ *                             type: integer
+ *                           timestamp:
+ *                             type: integer
+ *                           transactionSignature:
+ *                             type: string
+ *       404:
+ *         description: Subscription not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/history/:subscriber/:planId', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
@@ -122,7 +255,60 @@ router.get('/history/:subscriber/:planId', requirePermissions(['read:payments'])
   }
 });
 
-// Get upcoming payments for a subscriber
+/**
+ * @swagger
+ * /api/payments/upcoming/{subscriber}:
+ *   get:
+ *     summary: Get upcoming payments for a subscriber
+ *     description: Retrieve all upcoming payments for a subscriber's active subscriptions
+ *     tags: [Payments]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subscriber's Solana public key
+ *     responses:
+ *       200:
+ *         description: Upcoming payments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     subscriber:
+ *                       type: string
+ *                     upcomingPayments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           planId:
+ *                             type: integer
+ *                           creator:
+ *                             type: string
+ *                           amount:
+ *                             type: integer
+ *                           nextPayment:
+ *                             type: integer
+ *                           isOverdue:
+ *                             type: boolean
+ *                           daysUntilPayment:
+ *                             type: integer
+ *                     totalUpcoming:
+ *                       type: integer
+ *                     overdueCount:
+ *                       type: integer
+ */
 router.get('/upcoming/:subscriber', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const subscriber = req.params.subscriber;
@@ -170,7 +356,49 @@ router.get('/upcoming/:subscriber', requirePermissions(['read:payments']), async
   }
 });
 
-// Get payment statistics for a creator
+/**
+ * @swagger
+ * /api/payments/stats/creator/{creator}:
+ *   get:
+ *     summary: Get payment statistics for a creator
+ *     description: Retrieve payment and revenue statistics for a creator
+ *     tags: [Payments]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: creator
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Creator's Solana public key
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     creator:
+ *                       type: string
+ *                     totalPlans:
+ *                       type: integer
+ *                     totalSubscribers:
+ *                       type: integer
+ *                     totalRevenue:
+ *                       type: integer
+ *                     monthlyRecurringRevenue:
+ *                       type: integer
+ *                     activePlans:
+ *                       type: integer
+ */
 router.get('/stats/creator/:creator', requirePermissions(['read:payments']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const creator = req.params.creator;

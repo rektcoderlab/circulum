@@ -43,7 +43,43 @@ const apiKeySchema = Joi.object({
   rateLimit: Joi.number().integer().min(10).max(10000).default(1000),
 });
 
-// Get integration info and available endpoints
+/**
+ * @swagger
+ * /api/integration/info:
+ *   get:
+ *     summary: Get integration information
+ *     description: Retrieve information about available endpoints, supported tokens, and integration capabilities
+ *     tags: [Integration]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Integration information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     version:
+ *                       type: string
+ *                     network:
+ *                       type: string
+ *                     programId:
+ *                       type: string
+ *                     endpoints:
+ *                       type: object
+ *                     supportedTokens:
+ *                       type: array
+ *                     webhookEvents:
+ *                       type: array
+ *                     rateLimits:
+ *                       type: object
+ */
 router.get('/info', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const integrationInfo = {
@@ -121,7 +157,53 @@ router.get('/info', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Validate integration setup
+/**
+ * @swagger
+ * /api/integration/validate:
+ *   post:
+ *     summary: Validate integration setup
+ *     description: Validate a Solana public key and check network connectivity
+ *     tags: [Integration]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - publicKey
+ *             properties:
+ *               publicKey:
+ *                 type: string
+ *                 description: Solana public key to validate
+ *               network:
+ *                 type: string
+ *                 description: Network to validate against (devnet, mainnet-beta)
+ *                 example: devnet
+ *     responses:
+ *       200:
+ *         description: Validation results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     publicKey:
+ *                       type: object
+ *                     network:
+ *                       type: object
+ *                     account:
+ *                       type: object
+ *                     integration:
+ *                       type: object
+ */
 router.post('/validate', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { publicKey, network } = req.body;
@@ -197,7 +279,44 @@ router.post('/validate', async (req: Request, res: Response, next: NextFunction)
   }
 });
 
-// Webhook management
+/**
+ * @swagger
+ * /api/integration/webhooks:
+ *   get:
+ *     summary: List webhooks
+ *     description: Retrieve all configured webhooks
+ *     tags: [Integration]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: List of webhooks retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       url:
+ *                         type: string
+ *                       events:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       active:
+ *                         type: boolean
+ *                       createdAt:
+ *                         type: string
+ */
 router.get('/webhooks', authenticateApiKey, requirePermissions(['read:webhooks']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from a database
@@ -220,6 +339,54 @@ router.get('/webhooks', authenticateApiKey, requirePermissions(['read:webhooks']
   }
 });
 
+/**
+ * @swagger
+ * /api/integration/webhooks:
+ *   post:
+ *     summary: Create a webhook
+ *     description: Create a new webhook endpoint
+ *     tags: [Integration]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - url
+ *               - events
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: uri
+ *                 description: Webhook URL
+ *               events:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [subscription.created, subscription.cancelled, payment.processed, payment.failed, plan.created, plan.updated, plan.deactivated]
+ *                 description: Array of events to subscribe to
+ *               secret:
+ *                 type: string
+ *                 description: Optional webhook secret
+ *     responses:
+ *       201:
+ *         description: Webhook created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                 message:
+ *                   type: string
+ */
 router.post('/webhooks', authenticateApiKey, requirePermissions(['write:webhooks']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = webhookSchema.validate(req.body);
@@ -251,7 +418,48 @@ router.post('/webhooks', authenticateApiKey, requirePermissions(['write:webhooks
   }
 });
 
-// API Key management
+/**
+ * @swagger
+ * /api/integration/api-keys:
+ *   get:
+ *     summary: List API keys
+ *     description: Retrieve all API keys
+ *     tags: [Integration]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: List of API keys retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       keyPreview:
+ *                         type: string
+ *                       permissions:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       rateLimit:
+ *                         type: integer
+ *                       lastUsed:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ */
 router.get('/api-keys', authenticateApiKey, requirePermissions(['read:api-keys']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from a database
@@ -276,6 +484,69 @@ router.get('/api-keys', authenticateApiKey, requirePermissions(['read:api-keys']
   }
 });
 
+/**
+ * @swagger
+ * /api/integration/api-keys:
+ *   post:
+ *     summary: Create an API key
+ *     description: Create a new API key with specified permissions
+ *     tags: [Integration]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - permissions
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name for the API key
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of permissions
+ *               rateLimit:
+ *                 type: integer
+ *                 description: Rate limit for the key
+ *                 default: 1000
+ *     responses:
+ *       201:
+ *         description: API key created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     key:
+ *                       type: string
+ *                       description: Full API key (only shown once)
+ *                     keyPreview:
+ *                       type: string
+ *                     permissions:
+ *                       type: array
+ *                     rateLimit:
+ *                       type: integer
+ *                     createdAt:
+ *                       type: string
+ *                 message:
+ *                   type: string
+ */
 router.post('/api-keys', authenticateApiKey, requirePermissions(['write:api-keys']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = apiKeySchema.validate(req.body);
@@ -316,7 +587,53 @@ router.post('/api-keys', authenticateApiKey, requirePermissions(['write:api-keys
   }
 });
 
-// SDK and code examples
+/**
+ * @swagger
+ * /api/integration/sdk/{language}:
+ *   get:
+ *     summary: Get SDK examples
+ *     description: Retrieve SDK installation and code examples for a specific language
+ *     tags: [Integration]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: language
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [javascript, python, curl]
+ *         description: Programming language
+ *     responses:
+ *       200:
+ *         description: SDK examples retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     language:
+ *                       type: string
+ *                     installation:
+ *                       type: string
+ *                     example:
+ *                       type: string
+ *                     documentation:
+ *                       type: string
+ *                     support:
+ *                       type: string
+ *       404:
+ *         description: SDK examples not available for the specified language
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/sdk/:language', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { language } = req.params;
@@ -484,7 +801,44 @@ router.post('/test', authenticateApiKey, requirePermissions(['integration:write'
   }
 });
 
-// Get integration metrics
+/**
+ * @swagger
+ * /api/integration/metrics:
+ *   get:
+ *     summary: Get integration metrics
+ *     description: Retrieve API usage metrics and statistics
+ *     tags: [Integration]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Metrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalRequests:
+ *                       type: integer
+ *                     successRate:
+ *                       type: number
+ *                     averageResponseTime:
+ *                       type: integer
+ *                     activeIntegrations:
+ *                       type: integer
+ *                     topEndpoints:
+ *                       type: array
+ *                     errorBreakdown:
+ *                       type: object
+ *                     timeRange:
+ *                       type: string
+ */
 router.get('/metrics', authenticateApiKey, requirePermissions(['read:metrics']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real implementation, you would fetch from analytics/metrics store

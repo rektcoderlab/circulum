@@ -24,7 +24,81 @@ const cancelSubscriptionSchema = Joi.object({
 // Apply authentication middleware to all subscription routes
 router.use(authenticateApiKey);
 
-// Subscribe to a plan
+/**
+ * @swagger
+ * /api/subscriptions:
+ *   post:
+ *     summary: Subscribe to a plan
+ *     description: Create a new subscription to a creator's plan
+ *     tags: [Subscriptions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - subscriber
+ *               - creator
+ *               - planId
+ *             properties:
+ *               subscriber:
+ *                 type: string
+ *                 description: Subscriber's Solana public key
+ *                 example: "BxS9v7KJH3HnBKuYxmqHkJgfFqqYPbHPk9Xzm24VwTmq"
+ *               creator:
+ *                 type: string
+ *                 description: Creator's Solana public key
+ *                 example: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+ *               planId:
+ *                 type: integer
+ *                 description: Plan ID to subscribe to
+ *                 example: 0
+ *     responses:
+ *       201:
+ *         description: Successfully subscribed to plan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transactionSignature:
+ *                       type: string
+ *                     subscriber:
+ *                       type: string
+ *                     creator:
+ *                       type: string
+ *                     planId:
+ *                       type: integer
+ *                     message:
+ *                       type: string
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Invalid API key
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/', requirePermissions(['write:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = subscribeSchema.validate(req.body);
@@ -61,7 +135,48 @@ router.post('/', requirePermissions(['write:subscriptions']), async (req: Reques
   }
 });
 
-// Get subscription details
+/**
+ * @swagger
+ * /api/subscriptions/{subscriber}/{planId}:
+ *   get:
+ *     summary: Get subscription details
+ *     description: Retrieve details of a specific subscription
+ *     tags: [Subscriptions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subscriber's Solana public key
+ *       - in: path
+ *         name: planId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Plan ID
+ *     responses:
+ *       200:
+ *         description: Subscription details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Subscription'
+ *       404:
+ *         description: Subscription not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:subscriber/:planId', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
@@ -91,7 +206,38 @@ router.get('/:subscriber/:planId', requirePermissions(['read:subscriptions']), a
   }
 });
 
-// Get all subscriptions for a subscriber
+/**
+ * @swagger
+ * /api/subscriptions/subscriber/{subscriber}:
+ *   get:
+ *     summary: Get all subscriptions for a subscriber
+ *     description: Retrieve all subscriptions for a specific subscriber
+ *     tags: [Subscriptions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subscriber's Solana public key
+ *     responses:
+ *       200:
+ *         description: List of subscriptions retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Subscription'
+ */
 router.get('/subscriber/:subscriber', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const subscriber = req.params.subscriber;
@@ -116,7 +262,60 @@ router.get('/subscriber/:subscriber', requirePermissions(['read:subscriptions'])
   }
 });
 
-// Cancel subscription
+/**
+ * @swagger
+ * /api/subscriptions:
+ *   delete:
+ *     summary: Cancel a subscription
+ *     description: Cancel an existing subscription
+ *     tags: [Subscriptions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - subscriber
+ *               - creator
+ *               - planId
+ *             properties:
+ *               subscriber:
+ *                 type: string
+ *                 description: Subscriber's Solana public key
+ *               creator:
+ *                 type: string
+ *                 description: Creator's Solana public key
+ *               planId:
+ *                 type: integer
+ *                 description: Plan ID to cancel
+ *     responses:
+ *       200:
+ *         description: Subscription cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transactionSignature:
+ *                       type: string
+ *                     subscriber:
+ *                       type: string
+ *                     creator:
+ *                       type: string
+ *                     planId:
+ *                       type: integer
+ *                     message:
+ *                       type: string
+ */
 router.delete('/', requirePermissions(['write:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = cancelSubscriptionSchema.validate(req.body);
@@ -153,7 +352,58 @@ router.delete('/', requirePermissions(['write:subscriptions']), async (req: Requ
   }
 });
 
-// Get subscription status (check if payment is due)
+/**
+ * @swagger
+ * /api/subscriptions/{subscriber}/{planId}/status:
+ *   get:
+ *     summary: Get subscription status
+ *     description: Check if a subscription payment is due and get payment information
+ *     tags: [Subscriptions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subscriber's Solana public key
+ *       - in: path
+ *         name: planId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Plan ID
+ *     responses:
+ *       200:
+ *         description: Subscription status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isActive:
+ *                       type: boolean
+ *                     isPaymentDue:
+ *                       type: boolean
+ *                     nextPayment:
+ *                       type: integer
+ *                       description: Unix timestamp
+ *                     timeUntilNextPayment:
+ *                       type: integer
+ *                       description: Seconds until next payment
+ *                     totalPayments:
+ *                       type: integer
+ *                     lastPayment:
+ *                       type: integer
+ *                       description: Unix timestamp
+ */
 router.get('/:subscriber/:planId/status', requirePermissions(['read:subscriptions']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { subscriber, planId } = req.params;
